@@ -24,3 +24,9 @@ To build only specific target:
 docker build --target=mkv-build .
 docker build --target=qt-build .
 ```
+
+To build for a different platform:
+
+```shell
+docker build --target=qt-build --platform=linux/arm .
+```
