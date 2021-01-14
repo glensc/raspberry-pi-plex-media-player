@@ -2,6 +2,7 @@
 
 ARG FFMPEG_CHECKOUT=n4.3.1
 ARG MPV_CHECKOUT=v0.33.0
+ARG LIBASS_CHECKOUT=0.15.0
 
 FROM debian:buster AS base
 
@@ -23,7 +24,8 @@ RUN git clone https://github.com/FFmpeg/FFmpeg.git --depth=1 -b $FFMPEG_CHECKOUT
 
 FROM git AS libass-source
 WORKDIR /libass
-RUN git clone https://github.com/libass/libass.git .
+ARG LIBASS_CHECKOUT
+RUN git clone https://github.com/libass/libass.git --depth=1 -b $LIBASS_CHECKOUT .
 
 FROM git AS mpv-source
 WORKDIR /mpv
@@ -62,9 +64,11 @@ COPY --from=waf-source /waf ./mpv/waf
 ENV LC_ALL=C
 ARG FFMPEG_CHECKOUT
 ARG MPV_CHECKOUT
+ARG LIBASS_CHECKOUT
 RUN set -x \
     && echo --enable-libmpv-shared >> mpv_options \
     && echo --disable-cplayer >> mpv_options \
+    && scripts/switch-branch libass @$LIBASS_CHECKOUT \
     && scripts/switch-branch mpv @$MPV_CHECKOUT \
     && scripts/switch-branch ffmpeg @$FFMPEG_CHECKOUT \
     && exit 0
