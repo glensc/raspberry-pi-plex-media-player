@@ -5,6 +5,9 @@ FROM debian:buster AS base
 FROM base AS git
 RUN apt update && apt install -y git
 
+FROM base AS wget
+RUN apt update && apt install -y wget
+
 ## Clone repos
 FROM git AS mpv-build-source
 WORKDIR /mpv-build
@@ -21,6 +24,10 @@ RUN git clone https://github.com/libass/libass.git .
 FROM git AS mpv-source
 WORKDIR /mpv
 RUN git clone https://github.com/mpv-player/mpv.git .
+
+FROM wget AS qt5-source
+WORKDIR /qt5
+RUN wget https://files.pimylifeup.com/plexmediaplayer/qt5-opengl-dev_5.12.5_armhf.deb
 
 ## Build mpv
 FROM base AS mpv-build
@@ -44,5 +51,5 @@ FROM base AS qt-build
 RUN apt update && apt install -y wget gnupg
 RUN wget https://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - |  apt-key add -
 RUN echo "deb http://archive.raspberrypi.org/debian/ buster main" > /etc/apt/sources.list.d/raspberrypi.list && apt update
-RUN wget https://files.pimylifeup.com/plexmediaplayer/qt5-opengl-dev_5.12.5_armhf.deb
+COPY --from=qt5-source /qt5 /
 RUN apt-get install -y ./qt5-opengl-dev_5.12.5_armhf.deb
