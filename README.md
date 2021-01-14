@@ -10,11 +10,13 @@ It's recommended to use BuildKit to speed up and run jobs in parallel.
 
 ```shell
 export DOCKER_BUILDKIT=1
+docker build .
 ```
 
-To build all:
-```sh
-docker build .
+Or use buildx, which has BuildKit already enabled:
+
+```shell
+docker buildx build .
 ```
 
 To build only specific target:
