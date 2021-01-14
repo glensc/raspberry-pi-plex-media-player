@@ -1,5 +1,8 @@
 # https://pimylifeup.com/raspberry-pi-plex-media-player/
 
+ARG FFMPEG_CHECKOUT=n4.3.1
+ARG MPV_CHECKOUT=v0.33.0
+
 FROM debian:buster AS base
 
 FROM base AS git
@@ -15,7 +18,8 @@ RUN git clone https://github.com/mpv-player/mpv-build.git .
 
 FROM git AS ffmpeg-source
 WORKDIR /ffmpeg
-RUN git clone https://github.com/FFmpeg/FFmpeg.git .
+ARG FFMPEG_CHECKOUT
+RUN git clone https://github.com/FFmpeg/FFmpeg.git --depth=1 -b $FFMPEG_CHECKOUT .
 
 FROM git AS libass-source
 WORKDIR /libass
@@ -23,7 +27,8 @@ RUN git clone https://github.com/libass/libass.git .
 
 FROM git AS mpv-source
 WORKDIR /mpv
-RUN git clone https://github.com/mpv-player/mpv.git .
+ARG MPV_CHECKOUT
+RUN git clone https://github.com/mpv-player/mpv.git --depth=1 -b $MPV_CHECKOUT .
 
 FROM wget AS qt5-source
 WORKDIR /qt5
@@ -55,11 +60,13 @@ COPY --from=mpv-source /mpv ./mpv
 COPY --from=waf-source /waf ./mpv/waf
 
 ENV LC_ALL=C
+ARG FFMPEG_CHECKOUT
+ARG MPV_CHECKOUT
 RUN set -x \
     && echo --enable-libmpv-shared >> mpv_options \
     && echo --disable-cplayer >> mpv_options \
-    && ./use-mpv-release \
-    && ./use-ffmpeg-release \
+    && scripts/switch-branch mpv @$MPV_CHECKOUT \
+    && scripts/switch-branch ffmpeg @$FFMPEG_CHECKOUT \
     && exit 0
 
 # libass
