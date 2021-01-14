@@ -46,7 +46,7 @@ ENV PATH="/usr/lib/ccache:${PATH}"
 ENV CCACHE_DIR="/ccache"
 
 ## Build mpv
-FROM build-base AS mpv-build
+FROM build-base AS mpv-build-base
 WORKDIR /build
 COPY --from=mpv-build-source /mpv-build .
 COPY --from=ffmpeg-source /ffmpeg ./ffmpeg
@@ -54,13 +54,44 @@ COPY --from=libass-source /libass ./libass
 COPY --from=mpv-source /mpv ./mpv
 COPY --from=waf-source /waf ./mpv/waf
 
-RUN echo --enable-libmpv-shared >> mpv_options
-RUN echo --disable-cplayer >> mpv_options
-RUN ./use-mpv-release
-RUN ./use-ffmpeg-release
-RUN ./rebuild -j$(nproc)
-RUN rm -rf /usr/local/include /usr/local/lib
-RUN ./install
+ENV LC_ALL=C
+RUN set -x \
+    && echo --enable-libmpv-shared >> mpv_options \
+    && echo --disable-cplayer >> mpv_options \
+    && ./use-mpv-release \
+    && ./use-ffmpeg-release \
+    && exit 0
+
+# libass
+FROM mpv-build-base AS libass-build
+RUN --mount=type=cache,id=libass-build,target=/ccache \
+    scripts/libass-config \
+        --cache-file=/ccache/libass.config \
+    && scripts/libass-build -j$(nproc)
+
+RUN --mount=type=cache,id=libass-build,target=/ccache \
+    ccache -s > ccache.txt && cp /ccache/libass.config .
+
+# ffmpeg
+FROM mpv-build-base AS ffmpeg-build
+COPY --from=libass-build /build/build_libs/ /build/build_libs/
+RUN --mount=type=cache,id=ffmpeg-build,target=/ccache \
+    scripts/ffmpeg-config && scripts/ffmpeg-build -j$(nproc)
+
+RUN --mount=type=cache,id=ffmpeg-build,target=/ccache \
+    ccache -s > ccache.txt
+
+# mpv
+FROM mpv-build-base AS mpv-build
+COPY --from=ffmpeg-build /build/build_libs/ /build/build_libs/
+RUN \
+    --mount=type=cache,id=mpv-build,target=/ccache \
+    scripts/mpv-config && scripts/mpv-build -j$(nproc)
+
+RUN --mount=type=cache,id=mpv-build,target=/ccache \
+    ccache -s > ccache.txt
+
+RUN rm -rf /usr/local/include /usr/local/lib && ./install
 
 ## Build qt
 FROM build-base AS qt-build
