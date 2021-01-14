@@ -29,6 +29,10 @@ FROM wget AS qt5-source
 WORKDIR /qt5
 RUN wget https://files.pimylifeup.com/plexmediaplayer/qt5-opengl-dev_5.12.5_armhf.deb
 
+FROM wget AS raspberrypi-key
+WORKDIR /gpg
+RUN wget https://archive.raspberrypi.org/debian/raspberrypi.gpg.key
+
 ## Build mpv
 FROM base AS mpv-build
 RUN apt update && apt install -y autoconf make automake build-essential gperf yasm gnutls-dev libv4l-dev libtool libtool-bin libharfbuzz-dev libfreetype6-dev libfontconfig1-dev libx11-dev libcec-dev libxrandr-dev libvdpau-dev libva-dev mesa-common-dev libegl1-mesa-dev yasm libasound2-dev libpulse-dev libbluray-dev libdvdread-dev libcdio-paranoia-dev libsmbclient-dev libcdio-cdda-dev libjpeg-dev libluajit-5.1-dev libuchardet-dev zlib1g-dev libfribidi-dev git libgnutls28-dev libgl1-mesa-dev libgles2-mesa-dev libsdl2-dev cmake python3 python python-minimal git mpv libmpv-dev
@@ -48,8 +52,9 @@ RUN ./install
 
 ## Build qt
 FROM base AS qt-build
-RUN apt update && apt install -y wget gnupg
-RUN wget https://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - |  apt-key add -
+RUN apt update && apt install -y gnupg
+COPY --from=raspberrypi-key /gpg/raspberrypi.gpg.key /
+RUN apt-key add /raspberrypi.gpg.key
 RUN echo "deb http://archive.raspberrypi.org/debian/ buster main" > /etc/apt/sources.list.d/raspberrypi.list && apt update
 COPY --from=qt5-source /qt5 /
 RUN apt-get install -y ./qt5-opengl-dev_5.12.5_armhf.deb
