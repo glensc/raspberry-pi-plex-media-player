@@ -29,6 +29,10 @@ FROM wget AS qt5-source
 WORKDIR /qt5
 RUN wget https://files.pimylifeup.com/plexmediaplayer/qt5-opengl-dev_5.12.5_armhf.deb
 
+FROM wget AS waf-source
+RUN wget https://waf.io/waf-2.0.20
+RUN mv waf-* waf && chmod a+rx waf
+
 FROM wget AS raspberrypi-key
 WORKDIR /gpg
 RUN wget https://archive.raspberrypi.org/debian/raspberrypi.gpg.key
@@ -43,6 +47,7 @@ COPY --from=mpv-build-source /mpv-build .
 COPY --from=ffmpeg-source /ffmpeg ./ffmpeg
 COPY --from=libass-source /libass ./libass
 COPY --from=mpv-source /mpv ./mpv
+COPY --from=waf-source /waf ./mpv/waf
 
 RUN echo --enable-libmpv-shared >> mpv_options
 RUN echo --disable-cplayer >> mpv_options
