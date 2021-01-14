@@ -41,6 +41,8 @@ RUN ./install
 
 ## Build qt
 FROM base AS qt-build
-RUN apt update && apt install -y wget
+RUN apt update && apt install -y wget gnupg
+RUN wget https://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - |  apt-key add -
+RUN echo "deb http://archive.raspberrypi.org/debian/ buster main" > /etc/apt/sources.list.d/raspberrypi.list && apt update
 RUN wget https://files.pimylifeup.com/plexmediaplayer/qt5-opengl-dev_5.12.5_armhf.deb
 RUN apt-get install -y ./qt5-opengl-dev_5.12.5_armhf.deb
