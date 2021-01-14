@@ -38,3 +38,9 @@ RUN ./use-ffmpeg-release
 RUN ./rebuild -j$(nproc)
 RUN rm -rf /usr/local/include /usr/local/lib
 RUN ./install
+
+## Build qt
+FROM base AS qt-build
+RUN apt update && apt install -y wget
+RUN wget https://files.pimylifeup.com/plexmediaplayer/qt5-opengl-dev_5.12.5_armhf.deb
+RUN apt-get install -y ./qt5-opengl-dev_5.12.5_armhf.deb
