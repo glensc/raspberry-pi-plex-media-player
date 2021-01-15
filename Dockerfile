@@ -99,6 +99,7 @@ RUN --mount=type=cache,id=ffmpeg-build,target=/ccache \
 # mpv
 FROM mpv-build-base AS mpv-build
 COPY --from=ffmpeg-build /build/build_libs/ /build/build_libs/
+RUN ln -sf python3 /usr/bin/python
 RUN \
     --mount=type=cache,id=mpv-build,target=/ccache \
     scripts/mpv-config && scripts/mpv-build -j$(nproc)
