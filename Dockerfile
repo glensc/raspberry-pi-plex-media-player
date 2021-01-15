@@ -154,3 +154,33 @@ RUN \
 # docker build --platform=linux/arm . -o out
 FROM scratch AS tar
 COPY --from=build-tar /*.tar /
+
+FROM pmp-build AS dist
+RUN apt update && apt install -y pax-utils
+RUN set -x \
+        /usr/local/bin/plexmediaplayer \
+        /usr/local/bin/pmphelper \
+    && strip "$@" \
+    && ls -lh "$@" \
+    && du -sh "$@" \
+    && exit 0
+
+    # https://github.com/docker-library/php/blob/c8c4d223a052220527c6d6f152b89587be0f5a7c/7.3/buster/cli/Dockerfile#L182
+    # reset apt-mark's "manual" list so that "purge --auto-remove" will remove all build dependencies
+    RUN \
+        apt-mark auto '.*' > /dev/null; \
+        [ -z "$savedAptMark" ] || apt-mark manual $savedAptMark; \
+        find /usr/local -type f -executable -exec ldd '{}' ';' \
+            | awk '/=>/ { print $(NF-1) }' \
+            | sort -u \
+            | xargs -r dpkg-query --search \
+            | cut -d: -f1 \
+            | sort -u \
+            | xargs -r apt-mark manual \
+        ; \
+        apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
+        \
+
+FROM base AS release
+COPY --from=dist /usr/lib/qt5.12/ /usr/lib/qt5.12/
+COPY --from=dist /usr/local /usr/local
