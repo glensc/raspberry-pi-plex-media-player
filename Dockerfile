@@ -1,3 +1,7 @@
+# syntax=docker/dockerfile:1.2
+# Needs BuildKit to enabled to build
+# https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/syntax.md
+#
 # https://pimylifeup.com/raspberry-pi-plex-media-player/
 
 ARG FFMPEG_CHECKOUT=n4.3.1
