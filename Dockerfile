@@ -105,7 +105,7 @@ RUN --mount=type=cache,id=mpv-build,target=/ccache \
 RUN --mount=type=cache,id=mpv-build,target=/ccache \
     ccache -s > ccache.txt
 
-RUN rm -rf /usr/local/include /usr/local/lib && ./install
+RUN rm -rf /usr/local && ./install
 
 ## Build qt
 FROM build-base AS qt-build
