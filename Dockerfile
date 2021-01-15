@@ -80,19 +80,18 @@ RUN set -x \
 # libass
 FROM mpv-build-base AS libass-build
 RUN --mount=type=cache,id=libass-build,target=/ccache \
-    scripts/libass-config \
-        --cache-file=/ccache/libass.config \
-    && scripts/libass-build -j$(nproc)
-
+    scripts/libass-config --cache-file=/ccache/libass.config
+RUN --mount=type=cache,id=libass-build,target=/ccache \
+    scripts/libass-build -j$(nproc)
 RUN --mount=type=cache,id=libass-build,target=/ccache \
     ccache -s > ccache.txt && cp /ccache/libass.config .
 
 # ffmpeg
 FROM mpv-build-base AS ffmpeg-build
 COPY --from=libass-build /build/build_libs/ /build/build_libs/
+RUN scripts/ffmpeg-config
 RUN --mount=type=cache,id=ffmpeg-build,target=/ccache \
-    scripts/ffmpeg-config && scripts/ffmpeg-build -j$(nproc)
-
+    scripts/ffmpeg-build -j$(nproc)
 RUN --mount=type=cache,id=ffmpeg-build,target=/ccache \
     ccache -s > ccache.txt
 
@@ -100,10 +99,9 @@ RUN --mount=type=cache,id=ffmpeg-build,target=/ccache \
 FROM mpv-build-base AS mpv-build
 COPY --from=ffmpeg-build /build/build_libs/ /build/build_libs/
 RUN ln -sf python3 /usr/bin/python
-RUN \
-    --mount=type=cache,id=mpv-build,target=/ccache \
-    scripts/mpv-config && scripts/mpv-build -j$(nproc)
-
+RUN scripts/mpv-config
+RUN --mount=type=cache,id=mpv-build,target=/ccache \
+    scripts/mpv-build -j$(nproc)
 RUN --mount=type=cache,id=mpv-build,target=/ccache \
     ccache -s > ccache.txt
 
