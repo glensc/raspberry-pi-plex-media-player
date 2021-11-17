@@ -138,3 +138,8 @@ RUN make install
 FROM base AS release
 COPY --from=qt-build /usr/lib/qt5.12/ /usr/lib/qt5.12/
 COPY --from=pmp-build /usr/local /usr/local
+
+# docker build --platform=linux/arm . -o out
+FROM scratch AS out
+COPY --from=qt-build /usr/lib/qt5.12/ /usr/lib/qt5.12/
+COPY --from=pmp-build /usr/local /usr/local
