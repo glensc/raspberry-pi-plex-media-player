@@ -135,11 +135,22 @@ RUN --mount=type=cache,id=pmp-build,target=/ccache \
     make -j$(nproc)
 RUN make install
 
-FROM base AS release
-COPY --from=qt-build /usr/lib/qt5.12/ /usr/lib/qt5.12/
-COPY --from=pmp-build /usr/local /usr/local
-
-# docker build --platform=linux/arm . -o out
+# docker build --target=out --platform=linux/arm . -o out
 FROM scratch AS out
 COPY --from=qt-build /usr/lib/qt5.12/ /usr/lib/qt5.12/
 COPY --from=pmp-build /usr/local /usr/local
+
+FROM base AS build-tar
+RUN \
+	--mount=type=bind,from=qt-build,source=/usr/lib/qt5.12,target=/usr/lib/qt5.12 \
+	--mount=type=bind,from=pmp-build,source=/usr/local,target=/usr/local \
+	tar cf /raspberry-pi-plex-media-player.tar \
+	/usr/local/bin/ \
+	/usr/local/share/plexmediaplayer/ \
+	/usr/local/share/applications/plexmediaplayer.desktop \
+	/usr/local/share/icons/hicolor/scalable/apps/plexmediaplayer.svg \
+	/usr/lib/qt5.12
+
+# docker build --platform=linux/arm . -o out
+FROM scratch AS tar
+COPY --from=build-tar /*.tar /

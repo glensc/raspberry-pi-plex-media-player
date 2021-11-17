@@ -8,7 +8,7 @@ Build Raspberry Pi Plex Media Player based on [Pi My Life Up blog post][1].
 
 It's recommended to use BuildKit to speed up and run jobs in parallel.
 
-The build output is placed to directory `out`.
+The build output in form of tar file is placed to directory `out`.
 
 ```shell
 export DOCKER_BUILDKIT=1
