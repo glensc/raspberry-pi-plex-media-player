@@ -7,6 +7,8 @@
 ARG FFMPEG_CHECKOUT=n4.3.1
 ARG MPV_CHECKOUT=v0.33.0
 ARG LIBASS_CHECKOUT=0.15.0
+# https://github.com/plexinc/plex-media-player/releases
+ARG PMP_CHECKOUT=v2.58.1-ae73e074
 
 FROM debian:buster AS base
 
@@ -50,7 +52,8 @@ RUN wget https://archive.raspberrypi.org/debian/raspberrypi.gpg.key
 
 FROM git AS pmp-source
 WORKDIR /pmp
-RUN git clone https://github.com/plexinc/plex-media-player .
+ARG PMP_CHECKOUT
+RUN git clone -b $PMP_CHECKOUT https://github.com/plexinc/plex-media-player --depth=1 .
 
 FROM base AS build-base
 RUN apt update && apt install -y autoconf make automake build-essential gperf yasm gnutls-dev libv4l-dev libtool libtool-bin libharfbuzz-dev libfreetype6-dev libfontconfig1-dev libx11-dev libcec-dev libxrandr-dev libvdpau-dev libva-dev mesa-common-dev libegl1-mesa-dev yasm libasound2-dev libpulse-dev libbluray-dev libdvdread-dev libcdio-paranoia-dev libsmbclient-dev libcdio-cdda-dev libjpeg-dev libluajit-5.1-dev libuchardet-dev zlib1g-dev libfribidi-dev git libgnutls28-dev libgl1-mesa-dev libgles2-mesa-dev libsdl2-dev cmake python3 python python-minimal git mpv libmpv-dev
